@@ -18,6 +18,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -41,7 +42,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.codinfinity.notes.tables.Note
 import com.codinfinity.notes.viewModels.NotesViewModel
 import com.codinfinity.notes.widgets.AddNoteDialog
@@ -58,12 +61,10 @@ import java.util.Date
     var noteToEdit by remember { mutableStateOf<Note?>(null) }
     val notes by viewModel.notes.collectAsState()
     Scaffold(
-        modifier = modifier,
         topBar = {
-            TopAppBar(
-                title = { Text("Notes App") },
-
-                )
+            CenterAlignedTopAppBar(
+                title = {Text("Notes App")}
+            )
         },
         floatingActionButton = {
             FloatingActionButton(
@@ -135,8 +136,8 @@ import java.util.Date
 
 @Composable
 fun NoteWidget(title:String, isCompleted: Boolean, onDelete: ()->Unit,onEdit:()->Unit,checkChanged: (Boolean) -> Unit){
- var isEditing by remember { mutableStateOf(false) }
- val dismissBoxState = rememberSwipeToDismissBoxState(
+    var isEditing by remember { mutableStateOf(false) }
+    val dismissBoxState = rememberSwipeToDismissBoxState(
      initialValue = SwipeToDismissBoxValue.Settled,
      confirmValueChange = {
         when(it){
@@ -167,11 +168,11 @@ fun NoteWidget(title:String, isCompleted: Boolean, onDelete: ()->Unit,onEdit:()-
              Modifier
                  .fillMaxSize()
                  .padding(horizontal = 16.dp)
-                 .clip(RoundedCornerShape(20.dp))
+                 .clip(RoundedCornerShape(10.dp))
                  .background(color = if (currentState) Color.Red else Color.Green)
                  .border(
                      border = BorderStroke(width = 2.dp, color = Color.Black,),
-                     shape = RoundedCornerShape(20.dp)
+                     shape = RoundedCornerShape(10.dp)
                  ),
              contentAlignment = if (currentState)
                  Alignment.CenterEnd else Alignment.CenterStart
@@ -190,11 +191,11 @@ fun NoteWidget(title:String, isCompleted: Boolean, onDelete: ()->Unit,onEdit:()-
      modifier = Modifier
          .fillMaxWidth()
          .padding(horizontal = 16.dp)
-         .clip(RoundedCornerShape(20.dp))
-         .background(color = Color.LightGray)
+         .clip(RoundedCornerShape(10.dp))
+         .background(color = Color.DarkGray)
          .border(
              border = BorderStroke(width = 2.dp, color = Color.Black,),
-             shape = RoundedCornerShape(20.dp)
+             shape = RoundedCornerShape(10.dp)
          )
  ){
      Row(
@@ -204,14 +205,19 @@ fun NoteWidget(title:String, isCompleted: Boolean, onDelete: ()->Unit,onEdit:()-
          horizontalArrangement = Arrangement.SpaceBetween
      ) {
          Text(title,
+             Modifier.padding(8.dp),
              style = TextStyle(
-                 color = Color.Black
+                 color = Color.White,
+                 fontSize = 20.sp,
              )
          )
          Checkbox(
              checked = isCompleted,
              onCheckedChange = checkChanged,
              colors = CheckboxDefaults.colors(
+                    checkedColor = Color.Green,
+                 uncheckedColor = Color.Black,
+                 checkmarkColor = Color.White
 
              )
          )

@@ -16,6 +16,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -44,6 +46,9 @@ import com.codinfinity.notes.tables.Note
 import com.codinfinity.notes.viewModels.NotesViewModel
 import com.codinfinity.notes.widgets.AddNoteDialog
 import com.codinfinity.notes.widgets.EditNoteDialog
+import kotlinx.coroutines.Delay
+import kotlinx.coroutines.InternalCoroutinesApi
+import java.util.Date
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -52,9 +57,8 @@ import com.codinfinity.notes.widgets.EditNoteDialog
     var showEditDialog by remember { mutableStateOf(false) };
     var noteToEdit by remember { mutableStateOf<Note?>(null) }
     val notes by viewModel.notes.collectAsState()
-    var count = 0
     Scaffold(
-        modifier = Modifier,
+        modifier = modifier,
         topBar = {
             TopAppBar(
                 title = { Text("Notes App") },
@@ -80,7 +84,7 @@ import com.codinfinity.notes.widgets.EditNoteDialog
                Text("No notes found.")
            } else
         LazyColumn(modifier = Modifier.padding(innerPadding)) {
-            items(notes, key = {it to it.title}) { note ->
+            items(notes, key = {"${it.id} - ${it.title} - ${it.version}"}) { note ->
                 NoteWidget(
                     title = note.title,
                     isCompleted = note.isCompleted,
@@ -102,11 +106,10 @@ import com.codinfinity.notes.widgets.EditNoteDialog
     if(showDialog){
         AddNoteDialog(
             dismissRequest = {showDialog = false},
-            submitRequest = {
+            submitRequest = {title ->
                 viewModel.addNote(Note(
-                    id = count++,
                     isCompleted = false,
-                    title = it
+                    title = title
                 ))
                 showDialog = false
             }
@@ -115,9 +118,13 @@ import com.codinfinity.notes.widgets.EditNoteDialog
     if(showEditDialog){
         noteToEdit?.let {note ->
             EditNoteDialog(
-                dismissRequest = {showEditDialog = false},
-                submitRequest = {title ->
-                    viewModel.updateNote(note = note)
+                dismissRequest = {version ->
+                    viewModel.updateNote(
+                        note = note, version = version, title =null
+                    )
+                    showEditDialog = false},
+                submitRequest = {title,version ->
+                    viewModel.updateNote(note = note,title = title,version = version)
                     showEditDialog = false
                 },
                 note = note
@@ -128,7 +135,9 @@ import com.codinfinity.notes.widgets.EditNoteDialog
 
 @Composable
 fun NoteWidget(title:String, isCompleted: Boolean, onDelete: ()->Unit,onEdit:()->Unit,checkChanged: (Boolean) -> Unit){
+ var isEditing by remember { mutableStateOf(false) }
  val dismissBoxState = rememberSwipeToDismissBoxState(
+     initialValue = SwipeToDismissBoxValue.Settled,
      confirmValueChange = {
         when(it){
             SwipeToDismissBoxValue.EndToStart ->{
@@ -137,43 +146,43 @@ fun NoteWidget(title:String, isCompleted: Boolean, onDelete: ()->Unit,onEdit:()-
             }
             SwipeToDismissBoxValue.StartToEnd ->{
                 onEdit()
+                isEditing = true
                 true
             }
             else -> false
         }
      }
  )
- SwipeToDismissBox(
+    LaunchedEffect(dismissBoxState.currentValue) {
+        if (dismissBoxState.currentValue != SwipeToDismissBoxValue.Settled) {
+            dismissBoxState.reset()
+        }
+    }
+
+    SwipeToDismissBox(
      state = dismissBoxState,
      backgroundContent = {
-         if(dismissBoxState.dismissDirection == SwipeToDismissBoxValue.EndToStart)
+         var currentState = dismissBoxState.dismissDirection == SwipeToDismissBoxValue.EndToStart
          Box(
              Modifier
                  .fillMaxSize()
                  .padding(horizontal = 16.dp)
                  .clip(RoundedCornerShape(20.dp))
-                 .background(color = Color.Red)
+                 .background(color = if (currentState) Color.Red else Color.Green)
                  .border(
                      border = BorderStroke(width = 2.dp, color = Color.Black,),
                      shape = RoundedCornerShape(20.dp)
-                 )
+                 ),
+             contentAlignment = if (currentState)
+                 Alignment.CenterEnd else Alignment.CenterStart
          ) {
-             Text("Delete...", Modifier.align(Alignment.Center))
-         }
-         else if(dismissBoxState.dismissDirection == SwipeToDismissBoxValue.StartToEnd){
-             Box(
-                 Modifier
-                     .fillMaxSize()
-                     .padding(horizontal = 16.dp)
-                     .clip(RoundedCornerShape(20.dp))
-                     .background(Color.Green)
-                     .border(
-                         border = BorderStroke(width = 2.dp, color = Color.Black,),
-                         shape = RoundedCornerShape(20.dp)
-                     )
-             ) {
-                 Text("Edit...", Modifier.align(Alignment.Center))
-             }
+             if(currentState)
+            Icon(
+                Icons.Default.Delete, contentDescription = "delete", Modifier.padding(horizontal = 16.dp),tint = Color.White)
+             else
+                 Icon(
+                     Icons.Default.Edit, contentDescription = "edit",Modifier.padding(horizontal = 16.dp), tint = Color.White)
+
          }
      }
  ) {

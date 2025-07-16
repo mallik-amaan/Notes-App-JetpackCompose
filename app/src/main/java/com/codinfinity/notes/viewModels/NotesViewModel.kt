@@ -30,9 +30,16 @@ class NotesViewModel(private val dao:NoteDao): ViewModel(){
         }
     }
 
-    fun updateNote(note:Note){
+    fun updateNote(note:Note,title:String?,version: Int){
         viewModelScope.launch {
-            dao.updateNote(note)
+            if(title.isNullOrEmpty()){
+                val updated = note.copy(version = version)
+                dao.updateNote(updated)
+            }
+            else {
+                val updated = note.copy(title = title, version = version)
+                      dao.updateNote(updated)
+        }
         }
     }
 

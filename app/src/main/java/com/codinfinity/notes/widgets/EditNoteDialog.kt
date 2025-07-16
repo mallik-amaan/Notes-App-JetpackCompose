@@ -18,14 +18,16 @@ import com.codinfinity.notes.tables.Note
 
 @Composable
 fun EditNoteDialog(
-    dismissRequest: () -> Unit,
-    submitRequest: (String)-> Unit,
+    dismissRequest: (Int) -> Unit,
+    submitRequest: (String,Int)-> Unit,
     note: Note
 
     ){
     var title by remember { mutableStateOf(note.title) }
     AlertDialog(
-        onDismissRequest = dismissRequest,
+        onDismissRequest = {
+            dismissRequest(note.version + 1)
+        },
         title = { Text("Edit Note") },
         text = {
             Column {
@@ -36,12 +38,14 @@ fun EditNoteDialog(
             }
         },
         confirmButton = {
-            TextButton(onClick = { submitRequest(title) }) {
+            TextButton(onClick = { submitRequest(title,note.version + 1) }) {
                 Text("Save")
             }
         },
         dismissButton = {
-            TextButton(onClick = dismissRequest) {
+            TextButton(onClick = {
+                dismissRequest(note.version + 1)
+            },) {
                 Text("Cancel")
             }
         }

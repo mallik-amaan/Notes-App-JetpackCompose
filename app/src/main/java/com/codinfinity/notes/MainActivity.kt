@@ -12,6 +12,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import com.codinfinity.notes.database.DatabaseProvider
 import com.codinfinity.notes.screens.NotesScreen
 import com.codinfinity.notes.ui.theme.NotesTheme
 import com.codinfinity.notes.viewModels.NotesViewModel
@@ -20,12 +21,15 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        val db = DatabaseProvider.getDatabase(applicationContext)
+        val dao = db.noteDao()
+        val viewModel = NotesViewModel(dao)
         setContent {
             NotesTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     NotesScreen(
                         modifier = Modifier.padding(innerPadding),
-                        viewModel = NotesViewModel()
+                        viewModel = viewModel
                     )
                 }
             }
@@ -33,18 +37,3 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    NotesTheme {
-        Greeting("Android")
-    }
-}

@@ -1,41 +1,45 @@
 package com.codinfinity.notes.viewModels
 
-import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.codinfinity.notes.dao.NoteDao
+import com.codinfinity.notes.tables.Note
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 
-class NotesViewModel: ViewModel(){
-    var notes = mutableStateListOf<Note>(
+class NotesViewModel(private val dao:NoteDao): ViewModel(){
+    val notes = dao.getAllNotes()
+        .stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = emptyList<Note>()
     )
 
-        private set
+
+
     fun addNote(note: Note){
-        notes.add(note);
+        viewModelScope.launch {
+            dao.insertNote(note)
+        }
     }
 
     fun removeNote(note:Note){
-        notes.remove(note);
-    }
-
-    fun updateNote(note:Note,title:String){
-        val index = notes.indexOf(note)
-        if (index != -1) {
-            val updated = note.copy(title = title)
-            notes[index] = updated
+        viewModelScope.launch {
+            dao.deleteNote(note)
         }
     }
-    fun toggleNoteCompletion(note: Note) {
-        val index = notes.indexOf(note)
-        if (index != -1) {
+
+    fun updateNote(note:Note){
+        viewModelScope.launch {
+            dao.updateNote(note)
+        }
+    }
+
+    fun toggleNoteCompletion(note:Note){
+        viewModelScope.launch {
             val updated = note.copy(isCompleted = !note.isCompleted)
-            notes[index] = updated
+            dao.updateNote(updated)
         }
     }
-
 }
-
-data class Note(
-    var id:Int,
-    var title:String,
-    var isCompleted:Boolean,
-
-)

@@ -14,13 +14,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.codinfinity.notes.viewModels.Note
+import com.codinfinity.notes.tables.Note
 
 @Composable
 fun EditNoteDialog(
     dismissRequest: () -> Unit,
     submitRequest: (String)-> Unit,
-    note:Note
+    note: Note
 
     ){
     var title by remember { mutableStateOf(note.title) }

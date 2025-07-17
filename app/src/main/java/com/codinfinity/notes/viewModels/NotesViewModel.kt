@@ -4,12 +4,20 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.codinfinity.notes.dao.NoteDao
 import com.codinfinity.notes.tables.Note
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 class NotesViewModel(private val dao:NoteDao): ViewModel(){
+
+    private val _isLoading = MutableStateFlow(true)
+    val isLoading = _isLoading.asStateFlow()
+
     val notes = dao.getAllNotes()
+        .onEach { _isLoading.value = false } // loading ends when data first arrives
         .stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
@@ -38,7 +46,7 @@ class NotesViewModel(private val dao:NoteDao): ViewModel(){
             }
             else {
                 val updated = note.copy(title = title, version = version)
-                      dao.updateNote(updated)
+                dao.updateNote(updated)
         }
         }
     }

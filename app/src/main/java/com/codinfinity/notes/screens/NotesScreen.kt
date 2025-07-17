@@ -21,6 +21,7 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -43,6 +44,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.LineHeightStyle
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.codinfinity.notes.tables.Note
@@ -60,6 +64,7 @@ import java.util.Date
     var showEditDialog by remember { mutableStateOf(false) };
     var noteToEdit by remember { mutableStateOf<Note?>(null) }
     val notes by viewModel.notes.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
@@ -76,7 +81,18 @@ import java.util.Date
             }
         }
     ){innerPadding ->
-       if (notes.size == 0)
+        if(isLoading){
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(
+                    color = Color . White,
+                    strokeWidth = 3.dp
+                )
+            }
+        }
+       else if (notes.isEmpty())
            Box(modifier = Modifier
                .fillMaxSize()
                .padding(innerPadding),
@@ -209,6 +225,7 @@ fun NoteWidget(title:String, isCompleted: Boolean, onDelete: ()->Unit,onEdit:()-
              style = TextStyle(
                  color = Color.White,
                  fontSize = 20.sp,
+                 textDecoration = if (isCompleted) TextDecoration.LineThrough else TextDecoration.None
              )
          )
          Checkbox(
